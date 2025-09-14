@@ -40,3 +40,7 @@ A serverless file management application built with modern cloud services. Uploa
 2. Switch between Local/API mode
 3. Upload files via drag & drop or file picker
 4. Manage files through the interface
+
+## Author
+
+Stefan Maksimović - M10/2024
