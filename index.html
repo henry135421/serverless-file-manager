@@ -410,7 +410,7 @@
         // Učitaj fajlove
         async function loadFiles() {
             try {
-                const response = await fetch(`${API_BASE}/list-files`);
+                const response = await fetch(`${API_BASE}/list_files`);
                 const data = await response.json();
                 
                 if (response.ok) {
