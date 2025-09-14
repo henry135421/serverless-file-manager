@@ -27,14 +27,15 @@ exports.handler = async (event, context) => {
 
     if (error) throw error;
 
-    // Mapiraj na format koji očekuje frontend
+    // Mapiraj na format koji očekuje frontend ALI BEZ fileData
     const mappedFiles = (files || []).map(file => ({
       fileId: file.id,
       fileName: file.file_name,
       fileSize: file.file_size,
       contentType: file.content_type,
       uploadDate: file.upload_date,
-      fileData: file.file_url
+      // NE VRAĆAJ fileData ovde - samo u download funkciji!
+      // fileData: file.file_url  // UKLONI OVO
     }));
 
     return {
