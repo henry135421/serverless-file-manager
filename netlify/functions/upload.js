@@ -1,3 +1,4 @@
+// netlify/functions/upload.js
 const { createClient } = require('@supabase/supabase-js');
 const cloudinary = require('cloudinary').v2;
 
@@ -12,12 +13,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
-
-console.log('Cloudinary config:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING',
-    api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
-    api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING'
-  });
 
 exports.handler = async (event, context) => {
   // Dozvoli CORS
@@ -39,25 +34,43 @@ exports.handler = async (event, context) => {
   try {
     const { fileName, fileSize, contentType, fileData } = JSON.parse(event.body);
     
-    console.log('Upload started:', { fileName, fileSize, contentType });
+    // Debug Cloudinary config
+    console.log('Cloudinary config check:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'NOT SET',
+      api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'NOT SET',
+      api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'NOT SET',
+      cloud_name_value: process.env.CLOUDINARY_CLOUD_NAME
+    });
     
-    let fileUrl = fileData; // Default za male fajlove
+    console.log('Upload attempt:', { fileName, fileSize, willUseCloudinary: fileSize > 100000 });
+    
+    let fileUrl = fileData;
+    let cloudinaryUsed = false;
     
     // Za veće fajlove koristi Cloudinary
     if (fileSize > 100000) { // 100KB
       try {
-        // Upload na Cloudinary
+        console.log('Attempting Cloudinary upload...');
+        
         const uploadResult = await cloudinary.uploader.upload(fileData, {
           resource_type: 'auto',
           folder: 'serverless-file-manager',
           public_id: `${Date.now()}-${fileName.replace(/\.[^/.]+$/, '')}`,
-          overwrite: true
+          overwrite: true,
+          timeout: 60000 // 60 sekundi timeout
         });
         
         fileUrl = uploadResult.secure_url;
-        console.log('Cloudinary upload successful:', uploadResult.public_id);
+        cloudinaryUsed = true;
+        console.log('Cloudinary upload SUCCESS:', {
+          public_id: uploadResult.public_id,
+          url: uploadResult.secure_url
+        });
       } catch (cloudinaryError) {
-        console.error('Cloudinary upload failed:', cloudinaryError);
+        console.error('Cloudinary upload FAILED:', {
+          error: cloudinaryError.message,
+          details: cloudinaryError
+        });
         // Nastavi sa base64 ako Cloudinary ne radi
       }
     }
@@ -76,7 +89,10 @@ exports.handler = async (event, context) => {
 
     if (error) throw error;
 
-    console.log('Database insert successful:', data.id);
+    console.log('Database insert successful:', {
+      id: data.id,
+      cloudinary: cloudinaryUsed
+    });
 
     return {
       statusCode: 200,
@@ -88,7 +104,8 @@ exports.handler = async (event, context) => {
         success: true,
         fileId: data.id,
         message: `${fileName} successfully uploaded!`,
-        cloudStorage: fileUrl.includes('cloudinary')
+        cloudStorage: cloudinaryUsed,
+        storageType: cloudinaryUsed ? 'Cloudinary' : 'Supabase Base64'
       })
     };
   } catch (error) {
