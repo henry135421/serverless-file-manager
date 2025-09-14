@@ -1,38 +1,42 @@
-Serverless File Manager
+# Serverless File Manager
+
 Cloud Computing Project - RAF Master Studies
-Overview
+
+## Overview
+
 A serverless file management application built with modern cloud services. Upload, view, download, and delete files without managing servers.
-Features
 
-File upload/download/delete operations
-Automatic cloud storage routing based on file size
-Dual mode: Local (localStorage) and API (serverless)
-Real-time file listing with metadata
+## Features
 
-Architecture
+- File upload/download/delete operations
+- Automatic cloud storage routing based on file size
+- Dual mode: Local (localStorage) and API (serverless)
+- Real-time file listing with metadata
 
-Frontend: Static HTML/JS hosted on Netlify CDN
-Backend: Netlify Functions (serverless)
-Database: Supabase (PostgreSQL)
-Storage: Cloudinary for large files
+## Architecture
 
-Technologies
+- **Frontend**: Static HTML/JS hosted on Netlify CDN
+- **Backend**: Netlify Functions (serverless)
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: Cloudinary for large files
 
-Netlify Functions (FaaS)
-Supabase (DBaaS)
-Cloudinary (Storage)
-HTML/CSS/JavaScript
+## Technologies
 
-API Endpoints
+- Netlify Functions (FaaS)
+- Supabase (DBaaS)
+- Cloudinary (Storage)
+- HTML/CSS/JavaScript
 
-POST /upload - Upload file
-GET /list-files - Get all files
-GET /download - Download file
-DELETE /delete - Delete file
+## API Endpoints
 
-Usage
+- `POST /upload` - Upload file
+- `GET /list-files` - Get all files
+- `GET /download` - Download file
+- `DELETE /delete` - Delete file
 
-Open application in browser
-Switch between Local/API mode
-Upload files via drag & drop or file picker
-Manage files through the interface
+## Usage
+
+1. Open application in browser
+2. Switch between Local/API mode
+3. Upload files via drag & drop or file picker
+4. Manage files through the interface
