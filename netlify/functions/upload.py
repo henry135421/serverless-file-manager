@@ -1,13 +1,17 @@
 import json
-import base64
+import cloudinary
+import cloudinary.uploader
 from datetime import datetime
-import uuid
+import os
+
+# Cloudinary config
+cloudinary.config(
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key = os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET')
+)
 
 def handler(event, context):
-    """
-    Netlify Function handler za upload fajlova
-    """
-    # Proveri HTTP metodu
     if event['httpMethod'] != 'POST':
         return {
             'statusCode': 405,
@@ -19,40 +23,28 @@ def handler(event, context):
         }
     
     try:
-        # Parse request body
         body = json.loads(event['body'])
         file_name = body.get('fileName')
-        file_size = body.get('fileSize')
-        content_type = body.get('contentType')
-        file_data = body.get('fileData')  # base64 encoded
+        file_data = body.get('fileData')  # base64
         
-        # Generiši unique ID
-        file_id = str(uuid.uuid4())
-        
-        # Za demonstraciju, simuliramo čuvanje
-        # U produkciji bi ovde bio kod za čuvanje na Cloudinary ili sličan servis
-        upload_info = {
-            'fileId': file_id,
-            'fileName': file_name,
-            'fileSize': file_size,
-            'contentType': content_type,
-            'uploadDate': datetime.now().isoformat(),
-            'status': 'success'
-        }
-        
-        print(f"File uploaded: {upload_info}")
+        # Upload na Cloudinary
+        result = cloudinary.uploader.upload(
+            file_data,
+            public_id=f"file-manager/{file_name}",
+            resource_type="auto"
+        )
         
         return {
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type'
+                'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
                 'success': True,
-                'fileId': file_id,
-                'message': f'File {file_name} uploaded successfully!'
+                'fileId': result['public_id'],
+                'url': result['secure_url'],
+                'message': f'{file_name} uploaded successfully!'
             })
         }
         
