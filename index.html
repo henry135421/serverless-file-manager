@@ -253,6 +253,23 @@
             margin-bottom: 20px;
             text-align: center;
         }
+
+        .analytics-section {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-top: 30px;
+}
+
+.top-files {
+    margin-top: 30px;
+}
+
+.top-files h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
     </style>
 </head>
 <body>
@@ -263,6 +280,8 @@
             <div class="mode-toggle">
                 <span class="mode-badge active" id="localMode">Local Mode</span>
                 <span class="mode-badge" id="apiMode">API Mode</span>
+                <span class="mode-badge" id="analyticsBtn">Analytics</span>
+
             </div>
         </header>
 
@@ -305,6 +324,31 @@
                     <div class="spinner"></div>
                     <p style="margin-top: 20px;">Loading files...</p>
                 </div>
+            </div>
+        </div>
+        <div class="analytics-section" style="display:none;" id="analyticsSection">
+            <h2>Analytics Dashboard</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="apiCallsToday">0</div>
+                    <div class="stat-label">API Calls (24h)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="bandwidthUsed">0 MB</div>
+                    <div class="stat-label">Bandwidth Used</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="uploadsToday">0</div>
+                    <div class="stat-label">Uploads Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="downloadsToday">0</div>
+                    <div class="stat-label">Downloads Today</div>
+                </div>
+            </div>
+            <div class="top-files">
+                <h3>Most Downloaded Files</h3>
+                <div id="topFilesList"></div>
             </div>
         </div>
     </div>
@@ -356,7 +400,53 @@
             warningMessage.innerHTML = 'API Mode: Using Netlify serverless functions';
             loadFiles();
         });
+
+        const analyticsBtn = document.getElementById('analyticsBtn');
+        const analyticsSection = document.getElementById('analyticsSection');
+        const filesSection = document.querySelector('.files-section');
+
+        analyticsBtn.addEventListener('click', () => {
+             if (analyticsSection.style.display === 'none') {
+         analyticsSection.style.display = 'block';
+         filesSection.style.display = 'none';
+        loadAnalytics();
+     } else {
+        analyticsSection.style.display = 'none';
+        filesSection.style.display = 'block';
+     }
+    });
         
+    async function loadAnalytics() {
+    if (!useAPI) {
+        showMessage('Analytics only available in API mode', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/analytics`);
+        const data = await response.json();
+        
+        document.getElementById('apiCallsToday').textContent = data.totalApiCalls || 0;
+        document.getElementById('bandwidthUsed').textContent = formatFileSize(data.bandwidthUsed || 0);
+        document.getElementById('uploadsToday').textContent = data.uploadCount || 0;
+        document.getElementById('downloadsToday').textContent = data.downloadCount || 0;
+        
+        // Top files list
+        if (data.topFiles && data.topFiles.length > 0) {
+            const topFilesHtml = data.topFiles.map(file => 
+                `<div class="file-item">
+                    <span>${file.file_name}</span>
+                    <span>${file.count} downloads</span>
+                </div>`
+            ).join('');
+            document.getElementById('topFilesList').innerHTML = topFilesHtml;
+        } else {
+            document.getElementById('topFilesList').innerHTML = '<p>No downloads yet</p>';
+        }
+    } catch (error) {
+        showMessage('Error loading analytics: ' + error.message, 'error');
+     }
+    }
         function initLocalStorage() {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (!stored) {

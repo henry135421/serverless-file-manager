@@ -7,7 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// Konfiguracija Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -15,7 +14,6 @@ cloudinary.config({
 });
 
 exports.handler = async (event, context) => {
-  // Dozvoli CORS
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -34,21 +32,12 @@ exports.handler = async (event, context) => {
   try {
     const { fileName, fileSize, contentType, fileData } = JSON.parse(event.body);
     
-    // Debug Cloudinary config
-    console.log('Cloudinary config check:', {
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'NOT SET',
-      api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'NOT SET',
-      api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'NOT SET',
-      cloud_name_value: process.env.CLOUDINARY_CLOUD_NAME
-    });
-    
     console.log('Upload attempt:', { fileName, fileSize, willUseCloudinary: fileSize > 100000 });
     
     let fileUrl = fileData;
     let cloudinaryUsed = false;
     
-    // Za veće fajlove koristi Cloudinary
-    if (fileSize > 100000) { // 100KB
+    if (fileSize > 100000) {
       try {
         console.log('Attempting Cloudinary upload...');
         
@@ -57,7 +46,7 @@ exports.handler = async (event, context) => {
           folder: 'serverless-file-manager',
           public_id: `${Date.now()}-${fileName.replace(/\.[^/.]+$/, '')}`,
           overwrite: true,
-          timeout: 60000 // 60 sekundi timeout
+          timeout: 60000
         });
         
         fileUrl = uploadResult.secure_url;
@@ -71,11 +60,9 @@ exports.handler = async (event, context) => {
           error: cloudinaryError.message,
           details: cloudinaryError
         });
-        // Nastavi sa base64 ako Cloudinary ne radi
       }
     }
     
-    // Sačuvaj metadata u Supabase
     const { data, error } = await supabase
       .from('files')
       .insert({
@@ -88,6 +75,16 @@ exports.handler = async (event, context) => {
       .single();
 
     if (error) throw error;
+
+    // Track upload event
+    await supabase.from('analytics').insert({
+      event_type: 'upload',
+      file_id: data.id,
+      file_name: fileName,
+      file_size: fileSize,
+      action: 'file_uploaded',
+      user_ip: event.headers['x-forwarded-for'] || 'unknown'
+    });
 
     console.log('Database insert successful:', {
       id: data.id,

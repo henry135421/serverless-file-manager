@@ -1,3 +1,4 @@
+// netlify/functions/download.js
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -6,7 +7,6 @@ const supabase = createClient(
 );
 
 exports.handler = async (event, context) => {
-  // Dozvoli CORS
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -28,7 +28,6 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Nađi fajl u bazi
     const { data, error } = await supabase
       .from('files')
       .select('*')
@@ -41,6 +40,16 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: 'File not found' })
       };
     }
+
+    // Track download event
+    await supabase.from('analytics').insert({
+      event_type: 'download',
+      file_id: fileId,
+      file_name: data.file_name,
+      file_size: data.file_size,
+      action: 'file_downloaded',
+      user_ip: event.headers['x-forwarded-for'] || 'unknown'
+    });
 
     return {
       statusCode: 200,
