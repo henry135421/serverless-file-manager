@@ -357,65 +357,84 @@
         const API_BASE = '/.netlify/functions';
         const STORAGE_KEY = 'serverless-files';
         let useAPI = false;
-        
-        const demoFiles = [
-            {
-                fileId: "demo-1",
-                fileName: "example.pdf",
-                fileSize: 2500000,
-                contentType: "application/pdf",
-                uploadDate: new Date().toISOString(),
-                fileData: "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKCg=="
-            },
-            {
-                fileId: "demo-2",
-                fileName: "presentation.pptx",
-                fileSize: 3750000,
-                contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                uploadDate: new Date(Date.now() - 86400000).toISOString(),
-                fileData: "data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,UEsDBBQABgAIAAAAIQ=="
-            }
-        ];
-        
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const messageArea = document.getElementById('messageArea');
-        const fileList = document.getElementById('fileList');
-        const localMode = document.getElementById('localMode');
-        const apiMode = document.getElementById('apiMode');
-        const warningMessage = document.getElementById('warningMessage');
-        
-        localMode.addEventListener('click', () => {
-            useAPI = false;
-            localMode.classList.add('active');
-            apiMode.classList.remove('active');
-            warningMessage.innerHTML = 'Local Mode: Files are stored only in this browser';
-            loadFiles();
-        });
-        
-        apiMode.addEventListener('click', () => {
-            useAPI = true;
-            apiMode.classList.add('active');
-            localMode.classList.remove('active');
-            warningMessage.innerHTML = 'API Mode: Using Netlify serverless functions';
-            loadFiles();
-        });
 
-        const analyticsBtn = document.getElementById('analyticsBtn');
-        const analyticsSection = document.getElementById('analyticsSection');
-        const filesSection = document.querySelector('.files-section');
+const demoFiles = [
+    {
+        fileId: "demo-1",
+        fileName: "example.pdf",
+        fileSize: 2500000,
+        contentType: "application/pdf",
+        uploadDate: new Date().toISOString(),
+        fileData: "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKCg=="
+    },
+    {
+        fileId: "demo-2",
+        fileName: "presentation.pptx",
+        fileSize: 3750000,
+        contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        uploadDate: new Date(Date.now() - 86400000).toISOString(),
+        fileData: "data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,UEsDBBQABgAIAAAAIQ=="
+    }
+];
 
-        analyticsBtn.addEventListener('click', () => {
-             if (analyticsSection.style.display === 'none') {
-         analyticsSection.style.display = 'block';
-         filesSection.style.display = 'none';
-        loadAnalytics();
-     } else {
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const messageArea = document.getElementById('messageArea');
+const fileList = document.getElementById('fileList');
+const localMode = document.getElementById('localMode');
+const apiMode = document.getElementById('apiMode');
+const warningMessage = document.getElementById('warningMessage');
+const analyticsBtn = document.getElementById('analyticsBtn');
+const analyticsSection = document.getElementById('analyticsSection');
+const filesSection = document.querySelector('.files-section');
+
+localMode.addEventListener('click', () => {
+    useAPI = false;
+    localMode.classList.add('active');
+    apiMode.classList.remove('active');
+    analyticsBtn.classList.remove('active');
+    warningMessage.innerHTML = 'Local Mode: Files are stored only in this browser';
+    
+    filesSection.style.display = 'block';
+    analyticsSection.style.display = 'none';
+    
+    loadFiles();
+});
+
+apiMode.addEventListener('click', () => {
+    useAPI = true;
+    apiMode.classList.add('active');
+    localMode.classList.remove('active');
+    analyticsBtn.classList.remove('active');
+    warningMessage.innerHTML = 'API Mode: Using Netlify serverless functions';
+    
+    filesSection.style.display = 'block';
+    analyticsSection.style.display = 'none';
+    
+    loadFiles();
+});
+
+analyticsBtn.addEventListener('click', () => {
+    if (analyticsBtn.classList.contains('active')) {
+        analyticsBtn.classList.remove('active');
         analyticsSection.style.display = 'none';
         filesSection.style.display = 'block';
-     }
-    });
         
+        if (useAPI) {
+            apiMode.classList.add('active');
+        } else {
+            localMode.classList.add('active');
+        }
+    } else {
+        analyticsBtn.classList.add('active');
+        localMode.classList.remove('active');
+        apiMode.classList.remove('active');
+        
+        analyticsSection.style.display = 'block';
+        filesSection.style.display = 'none';
+        loadAnalytics();
+    }
+});    
     async function loadAnalytics() {
     if (!useAPI) {
         showMessage('Analytics only available in API mode', 'error');
