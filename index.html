@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -258,65 +258,62 @@
 <body>
     <div class="container">
         <header>
-            <h1>☁️ Serverless File Manager</h1>
+            <h1>Serverless File Manager</h1>
             <p class="subtitle">Cloud Computing Project - Netlify Functions</p>
             <div class="mode-toggle">
-                <span class="mode-badge active" id="localMode">🖥️ Local Mode</span>
-                <span class="mode-badge" id="apiMode">☁️ API Mode</span>
+                <span class="mode-badge active" id="localMode">Local Mode</span>
+                <span class="mode-badge" id="apiMode">API Mode</span>
             </div>
         </header>
 
         <div class="warning" id="warningMessage">
-            ⚠️ Local Mode: Fajlovi se čuvaju samo u ovom browseru!
+            Local Mode: Files are stored only in this browser
         </div>
         
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-value" id="totalFiles">0</div>
-                <div class="stat-label">Ukupno fajlova</div>
+                <div class="stat-label">Total Files</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="totalSize">0 MB</div>
-                <div class="stat-label">Ukupna veličina</div>
+                <div class="stat-label">Total Size</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="todayUploads">0</div>
-                <div class="stat-label">Danas uploadovano</div>
+                <div class="stat-label">Uploaded Today</div>
             </div>
         </div>
         
         <div id="messageArea"></div>
         
         <div class="upload-section">
-            <h2>📤 Upload fajlova</h2>
+            <h2>Upload Files</h2>
             <div class="upload-area" id="uploadArea">
-                <div class="upload-icon" style="font-size: 48px; margin-bottom: 20px;">☁️</div>
-                <p style="font-size: 18px; margin-bottom: 20px;">Prevuci fajlove ovde ili klikni za izbor</p>
+                <p style="font-size: 18px; margin-bottom: 20px;">Drag files here or click to select</p>
                 <input type="file" id="fileInput" multiple>
                 <button class="btn" onclick="document.getElementById('fileInput').click()">
-                    Izaberi fajlove
+                    Choose Files
                 </button>
             </div>
         </div>
         
         <div class="files-section">
-            <h2>📁 Moji fajlovi</h2>
+            <h2>My Files</h2>
             <div id="fileList" class="file-list">
                 <div class="loading">
                     <div class="spinner"></div>
-                    <p style="margin-top: 20px;">Učitavanje fajlova...</p>
+                    <p style="margin-top: 20px;">Loading files...</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Globalne promenljive
         const API_BASE = '/.netlify/functions';
         const STORAGE_KEY = 'serverless-files';
-        let useAPI = false; // false = localStorage, true = API
+        let useAPI = false;
         
-        // Početni demo fajlovi
         const demoFiles = [
             {
                 fileId: "demo-1",
@@ -328,7 +325,7 @@
             },
             {
                 fileId: "demo-2",
-                fileName: "prezentacija.pptx",
+                fileName: "presentation.pptx",
                 fileSize: 3750000,
                 contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 uploadDate: new Date(Date.now() - 86400000).toISOString(),
@@ -336,7 +333,6 @@
             }
         ];
         
-        // Elementi
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const messageArea = document.getElementById('messageArea');
@@ -345,12 +341,11 @@
         const apiMode = document.getElementById('apiMode');
         const warningMessage = document.getElementById('warningMessage');
         
-        // Mode toggle
         localMode.addEventListener('click', () => {
             useAPI = false;
             localMode.classList.add('active');
             apiMode.classList.remove('active');
-            warningMessage.innerHTML = '⚠️ Local Mode: Fajlovi se čuvaju samo u ovom browseru!';
+            warningMessage.innerHTML = 'Local Mode: Files are stored only in this browser';
             loadFiles();
         });
         
@@ -358,11 +353,10 @@
             useAPI = true;
             apiMode.classList.add('active');
             localMode.classList.remove('active');
-            warningMessage.innerHTML = '☁️ API Mode: Koriste se Netlify funkcije (eksperimentalno)';
+            warningMessage.innerHTML = 'API Mode: Using Netlify serverless functions';
             loadFiles();
         });
         
-        // LocalStorage funkcije
         function initLocalStorage() {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (!stored) {
@@ -379,7 +373,6 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
         }
         
-        // Drag & Drop eventi
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             uploadArea.addEventListener(eventName, preventDefaults, false);
         });
@@ -401,7 +394,6 @@
             });
         });
         
-        // Handle drop
         uploadArea.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
         
@@ -415,23 +407,20 @@
             handleFiles(files);
         }
         
-        // Upload fajlova
         async function handleFiles(files) {
             for (let file of files) {
                 await uploadFile(file);
             }
-            loadFiles(); // Refresh lista
+            loadFiles();
         }
         
         async function uploadFile(file) {
-            showMessage(`Uploadujem ${file.name}...`, 'success');
+            showMessage(`Uploading ${file.name}...`, 'success');
             
             try {
-                // Konvertuj fajl u base64
                 const base64 = await fileToBase64(file);
                 
                 if (useAPI) {
-                    // API mode
                     const response = await fetch(`${API_BASE}/upload`, {
                         method: 'POST',
                         headers: {
@@ -448,12 +437,11 @@
                     const result = await response.json();
                     
                     if (response.ok) {
-                        showMessage(`✅ ${file.name} uspešno uploadovan!`, 'success');
+                        showMessage(`${file.name} uploaded successfully!`, 'success');
                     } else {
                         throw new Error(result.error || 'Upload failed');
                     }
                 } else {
-                    // LocalStorage mode
                     const newFile = {
                         fileId: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                         fileName: file.name,
@@ -467,14 +455,13 @@
                     files.push(newFile);
                     saveFiles(files);
                     
-                    showMessage(`✅ ${file.name} uspešno uploadovan!`, 'success');
+                    showMessage(`${file.name} uploaded successfully!`, 'success');
                 }
             } catch (error) {
-                showMessage(`❌ Greška pri upload-u: ${error.message}`, 'error');
+                showMessage(`Upload error: ${error.message}`, 'error');
             }
         }
         
-        // Helper funkcije
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -492,17 +479,17 @@
         }
         
         function getFileIcon(contentType) {
-            if (!contentType) return '📄';
-            if (contentType.includes('image')) return '🖼️';
-            if (contentType.includes('video')) return '🎥';
-            if (contentType.includes('audio')) return '🎵';
-            if (contentType.includes('pdf')) return '📕';
-            if (contentType.includes('zip')) return '🗜️';
-            if (contentType.includes('text')) return '📝';
-            if (contentType.includes('presentation')) return '📊';
-            if (contentType.includes('spreadsheet')) return '📈';
-            if (contentType.includes('word')) return '📘';
-            return '📄';
+            if (!contentType) return 'FILE';
+            if (contentType.includes('image')) return 'IMG';
+            if (contentType.includes('video')) return 'VID';
+            if (contentType.includes('audio')) return 'AUD';
+            if (contentType.includes('pdf')) return 'PDF';
+            if (contentType.includes('zip')) return 'ZIP';
+            if (contentType.includes('text')) return 'TXT';
+            if (contentType.includes('presentation')) return 'PPT';
+            if (contentType.includes('spreadsheet')) return 'XLS';
+            if (contentType.includes('word')) return 'DOC';
+            return 'FILE';
         }
         
         function formatFileSize(bytes) {
@@ -519,19 +506,17 @@
             const diff = now - date;
             
             if (diff < 86400000) {
-                return `Danas u ${date.toLocaleTimeString('sr-RS', {hour: '2-digit', minute: '2-digit'})}`;
+                return `Today at ${date.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'})}`;
             }
             
-            return date.toLocaleDateString('sr-RS');
+            return date.toLocaleDateString('en-US');
         }
         
-        // Učitaj fajlove
         async function loadFiles() {
             try {
                 let files = [];
                 
                 if (useAPI) {
-                    // API mode
                     const response = await fetch(`${API_BASE}/list-files`);
                     const data = await response.json();
                     
@@ -541,14 +526,13 @@
                         throw new Error(data.error || 'Failed to load files');
                     }
                 } else {
-                    // LocalStorage mode
                     files = getStoredFiles();
                 }
                 
                 renderFiles(files);
                 updateStats(files);
             } catch (error) {
-                fileList.innerHTML = `<p style="text-align: center; color: #e74c3c;">⚠️ Greška pri učitavanju: ${error.message}</p>`;
+                fileList.innerHTML = `<p style="text-align: center; color: #e74c3c;">Error loading files: ${error.message}</p>`;
             }
         }
         
@@ -556,15 +540,13 @@
             if (files.length === 0) {
                 fileList.innerHTML = `
                     <div style="text-align: center; padding: 60px 20px; color: #7f8c8d;">
-                        <div style="font-size: 64px; margin-bottom: 20px;">📂</div>
-                        <p>Nema uploadovanih fajlova</p>
-                        <p style="font-size: 14px; margin-top: 10px;">Prevuci ili klikni iznad za upload</p>
+                        <p style="font-size: 18px;">No files uploaded</p>
+                        <p style="font-size: 14px; margin-top: 10px;">Drag files or click above to upload</p>
                     </div>
                 `;
                 return;
             }
             
-            // Sortiraj po datumu (najnoviji prvi)
             files.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
             
             let html = '';
@@ -572,7 +554,7 @@
                 html += `
                     <div class="file-item">
                         <div class="file-info">
-                            <div class="file-icon">${getFileIcon(file.contentType)}</div>
+                            <div class="file-icon">[${getFileIcon(file.contentType)}]</div>
                             <div class="file-details">
                                 <h4>${file.fileName}</h4>
                                 <div class="file-meta">
@@ -582,10 +564,10 @@
                         </div>
                         <div class="file-actions">
                             <button class="btn btn-small btn-download" onclick="downloadFile('${file.fileId}', '${file.fileName}')">
-                                ⬇️ Download
+                                Download
                             </button>
                             <button class="btn btn-small btn-delete" onclick="deleteFile('${file.fileId}')">
-                                🗑️ Obriši
+                                Delete
                             </button>
                         </div>
                     </div>
@@ -596,14 +578,11 @@
         }
         
         function updateStats(files) {
-            // Ukupan broj fajlova
             document.getElementById('totalFiles').textContent = files.length;
             
-            // Ukupna veličina
             const totalSize = files.reduce((sum, file) => sum + file.fileSize, 0);
             document.getElementById('totalSize').textContent = formatFileSize(totalSize);
             
-            // Danas uploadovano
             const today = new Date().toDateString();
             const todayFiles = files.filter(file => 
                 new Date(file.uploadDate).toDateString() === today
@@ -611,18 +590,15 @@
             document.getElementById('todayUploads').textContent = todayFiles.length;
         }
         
-        // Download fajla
         async function downloadFile(fileId, fileName) {
             try {
                 if (useAPI) {
-                    // API mode
-                    showMessage('Pripremam download...', 'success');
+                    showMessage('Preparing download...', 'success');
                     
                     const response = await fetch(`${API_BASE}/download?fileId=${fileId}`);
                     const data = await response.json();
                     
                     if (response.ok && data.fileData) {
-                        // Kreiraj download link
                         const link = document.createElement('a');
                         link.href = data.fileData;
                         link.download = fileName;
@@ -630,21 +606,19 @@
                         link.click();
                         document.body.removeChild(link);
                         
-                        showMessage('✅ Download započet!', 'success');
+                        showMessage('Download started!', 'success');
                     } else {
                         throw new Error(data.error || 'Download failed');
                     }
                 } else {
-                    // LocalStorage mode
                     const files = getStoredFiles();
                     const file = files.find(f => f.fileId === fileId);
                     
                     if (!file) {
-                        showMessage('❌ Fajl nije pronađen!', 'error');
+                        showMessage('File not found!', 'error');
                         return;
                     }
                     
-                    // Kreiraj download link
                     const link = document.createElement('a');
                     link.href = file.fileData;
                     link.download = fileName;
@@ -652,22 +626,20 @@
                     link.click();
                     document.body.removeChild(link);
                     
-                    showMessage('✅ Download započet!', 'success');
+                    showMessage('Download started!', 'success');
                 }
             } catch (error) {
-                showMessage(`❌ Greška pri download-u: ${error.message}`, 'error');
+                showMessage(`Download error: ${error.message}`, 'error');
             }
         }
         
-        // Brisanje fajla
         async function deleteFile(fileId) {
-            if (!confirm('Da li si siguran da želiš da obrišeš ovaj fajl?')) {
+            if (!confirm('Are you sure you want to delete this file?')) {
                 return;
             }
             
             try {
                 if (useAPI) {
-                    // API mode
                     const response = await fetch(`${API_BASE}/delete?fileId=${fileId}`, {
                         method: 'DELETE'
                     });
@@ -675,30 +647,27 @@
                     const data = await response.json();
                     
                     if (response.ok) {
-                        showMessage('✅ Fajl uspešno obrisan!', 'success');
-                        loadFiles(); // Refresh
+                        showMessage('File deleted successfully!', 'success');
+                        loadFiles();
                     } else {
                         throw new Error(data.error || 'Delete failed');
                     }
                 } else {
-                    // LocalStorage mode
                     const files = getStoredFiles();
                     const filtered = files.filter(f => f.fileId !== fileId);
                     saveFiles(filtered);
                     
-                    showMessage('✅ Fajl uspešno obrisan!', 'success');
-                    loadFiles(); // Refresh
+                    showMessage('File deleted successfully!', 'success');
+                    loadFiles();
                 }
             } catch (error) {
-                showMessage(`❌ Greška pri brisanju: ${error.message}`, 'error');
+                showMessage(`Delete error: ${error.message}`, 'error');
             }
         }
         
-        // Globalne funkcije za HTML onclick
         window.downloadFile = downloadFile;
         window.deleteFile = deleteFile;
         
-        // Inicijalizacija
         document.addEventListener('DOMContentLoaded', () => {
             initLocalStorage();
             loadFiles();
