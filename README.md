@@ -10,7 +10,7 @@ A serverless file management application built with modern cloud services. Uploa
 
 - File upload/download/delete operations
 - Automatic cloud storage routing based on file size
-- Dual mode: Local (localStorage) and API (serverless)
+- Three mode: Local (localStorage), API (serverless) and Analytics mode
 - Real-time file listing with metadata
 
 ## Architecture
@@ -33,6 +33,7 @@ A serverless file management application built with modern cloud services. Uploa
 - `GET /list-files` - Get all files
 - `GET /download` - Download file
 - `DELETE /delete` - Delete file
+- `GET analytics` - File analytics
 
 ## Usage
 
